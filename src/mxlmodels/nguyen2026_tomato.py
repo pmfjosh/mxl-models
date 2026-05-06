@@ -10,64 +10,90 @@ from mxlpy import Derived, InitialAssignment, Model
 import mxlmodels._names as n
 
 
-def same(x: float) -> float:
-    return x
-
-
-def divide(x: float, y: float) -> float:
-    return x / y
-
-
-def divide_negative(x: float, y: float) -> float:
+def _divide_negative(
+    x: float,
+    y: float,
+) -> float:
     return -x / y
 
 
-def ATPsyn_stoi(x: float, y: float, z: float) -> float:
+def _at_psyn_stoi(
+    x: float,
+    y: float,
+    z: float,
+) -> float:
     return -x * z / y
 
 
-def inverse(x: float) -> float:
+def _inverse(
+    x: float,
+) -> float:
     return 1 / x
 
 
-def inverse_negative(x: float) -> float:
+def _inverse_negative(
+    x: float,
+) -> float:
     return -1 / x
 
 
-def four_times_inverse(x: float) -> float:
+def _four_times_inverse(
+    x: float,
+) -> float:
     return 4 / x
 
 
-def two_times_inverse(x: float) -> float:
+def _two_times_inverse(
+    x: float,
+) -> float:
     return 2 / x
 
 
-def two_times_ratio(x: float, y: float) -> float:
+def _two_times_ratio(
+    x: float,
+    y: float,
+) -> float:
     return 2 * y / x
 
 
-def four_times_ratio(x: float, y: float) -> float:
+def _four_times_ratio(
+    x: float,
+    y: float,
+) -> float:
     return 4 * y / x
 
 
-def moiety_3(c1, c2, c3, total):
-    c4 = total - c1 - c2 - c3
-    return c4
+def _moiety_3(
+    c1: float,
+    c2: float,
+    c3: float,
+    total: float,
+) -> float:
+    return total - c1 - c2 - c3
 
 
-def normalize_concentration(concentration, total):
+def _normalize_concentration(
+    concentration: float,
+    total: float,
+) -> float:
     return concentration / total
 
 
-def mass_action_1s(s1, kf):
+def _mass_action_1s(
+    s1: float,
+    kf: float,
+) -> float:
     return kf * s1
 
 
-def mass_actions(s1, s2, kf):
-    return kf * s1 * s2
-
-
-def mass_action2_rev(s1, s2, p1, p2, kf, keq):  # reverse reaction
+def _mass_action2_rev(
+    s1: float,
+    s2: float,
+    p1: float,
+    p2: float,
+    kf: float,
+    keq: float,
+) -> float:  # reverse reaction
     forward = kf * s1 * s2
     reverse = kf / keq * p1 * p2
     return forward - reverse
@@ -105,7 +131,7 @@ par = {
     "kF": 6.25e8,  # unchanged fluorescence 16ns
     "kP": 6939318750.0,  # Fitted
     # Proton
-    n.pH_stroma: 7.8,  # unchanged [1/s] leakage rate
+    n.ph_stroma: 7.8,  # unchanged [1/s] leakage rate
     "kleak": 1000.0,  # unchanged
     "bH": 100,  # unchanged proton buffer: ratio total / free protons
     # Parameter associated with xanthophyll cycle
@@ -154,183 +180,248 @@ par = {
 }
 
 
-def mmol_to_conc(n_mmol, volume_per_area_membrane, Chl_per_area_membrane):
+def _mmol_to_conc(
+    n_mmol: float,
+    volume_per_area_membrane: float,
+    chl_per_area_membrane: float,
+) -> float:
 
     n_mol = n_mmol / 1000.0
-    conc = ((n_mol) / volume_per_area_membrane) * Chl_per_area_membrane
-    return conc
+    return ((n_mol) / volume_per_area_membrane) * chl_per_area_membrane
 
 
-def conc_to_mmol(conc, volume_per_area_membrane, Chl_per_area_membrane):
+def _conc_to_mmol(
+    conc: float,
+    volume_per_area_membrane: float,
+    chl_per_area_membrane: float,
+) -> float:
 
-    n_mol = (conc / Chl_per_area_membrane) * volume_per_area_membrane
-    n_mmol = n_mol * 1000.0
-    return n_mmol
+    n_mol = (conc / chl_per_area_membrane) * volume_per_area_membrane
+    return n_mol * 1000.0
 
 
-def calculate_pHinv(pH, volume_per_area_membrane, Chl_per_area_membrane):
-    """new"""
-    H_conc = 10 ** (-pH)
-    H_mmol_per_molChl = conc_to_mmol(
-        H_conc, volume_per_area_membrane, Chl_per_area_membrane
+def _calculate_p_hinv(
+    p_h: float,
+    volume_per_area_membrane: float,
+    chl_per_area_membrane: float,
+) -> float:
+    """New"""
+    H_conc = 10 ** (-p_h)
+    return _conc_to_mmol(
+        H_conc,
+        volume_per_area_membrane,
+        chl_per_area_membrane,
     )
-    return H_mmol_per_molChl
 
 
-def calculate_pH(H_mmol_per_molChl, volume_per_area_membrane, Chl_per_area_membrane):
-    "new"
-    H_conc = mmol_to_conc(
-        H_mmol_per_molChl, volume_per_area_membrane, Chl_per_area_membrane
+def _calculate_p_h(
+    h_mmol_per_mol_chl: float,
+    volume_per_area_membrane: float,
+    chl_per_area_membrane: float,
+) -> float:
+    """New"""
+    H_conc = _mmol_to_conc(
+        h_mmol_per_mol_chl,
+        volume_per_area_membrane,
+        chl_per_area_membrane,
     )
     return -np.log10(H_conc)
 
 
-def moiety(x: float, x_tot: float) -> float:
+def _moiety(
+    x: float,
+    x_tot: float,
+) -> float:
     return x_tot - x
 
 
-def propotional(x: float, y: float) -> float:
+def _propotional(
+    x: float,
+    y: float,
+) -> float:
     return x * y
 
 
-def _KeqQAPQ(
-    F: float, E0QAQAm: float, E0PQPQH2: float, pHstroma: float, R: float, T: float
+def _keq_qapq(
+    f: float,
+    e0_qaq_am: float,
+    e0_pqpqh2: float,
+    p_hstroma: float,
+    r: float,
+    t: float,
 ) -> float:
 
-    DG1 = -F * E0QAQAm
-    DG2 = -2 * F * E0PQPQH2 + 2 * pHstroma * np.log(10) * R * T
+    DG1 = -f * e0_qaq_am
+    DG2 = -2 * f * e0_pqpqh2 + 2 * p_hstroma * np.log(10) * r * t
     DG0 = -2 * DG1 + DG2
-    Keq = np.exp(-DG0 / (R * T))
-    return Keq
+    return np.exp(-DG0 / (r * t))
 
 
-def Keq_cytb6f(pHlumen, F, E0_PQ, E0_PC, pmf, R, T):
-    """
-    Equilibrium constant of cytb6f
+def _keq_cytb6f(
+    p_hlumen: float,
+    f: float,
+    e0_pq: float,
+    e0_pc: float,
+    pmf: float,
+    r: float,
+    t: float,
+) -> float:
+    """Equilibrium constant of cytb6f.
+
     Adjusted from Matuszynska et al 2019 - calculated from pmf instead of deltapH
     """
-    DG1 = -2 * F * E0_PQ
-    DG2 = -F * E0_PC
-    DG = -(DG1 + 2 * (np.log(10) * R * T) * pHlumen) + 2 * DG2 + 2 * F * pmf
-    Keq = np.exp(-DG / (R * T))
-    return Keq
+    DG1 = -2 * f * e0_pq
+    DG2 = -f * e0_pc
+    DG = -(DG1 + 2 * (np.log(10) * r * t) * p_hlumen) + 2 * DG2 + 2 * f * pmf
+    return np.exp(-DG / (r * t))
 
 
-def KeqATPsyn(
+def _keq_at_psyn(
     pmf: float,
-    DeltaG0_ATP: float,
-    R: float,
-    T: float,
-    F: float,
-    HPR: float,
-    Pi_mol: float,
+    delta_g0_atp: float,
+    r: float,
+    t: float,
+    f: float,
+    hpr: float,
+    pi_mol: float,
 ) -> float:
-    """
-    Equilibrium constant of ATP synthase. Adjusted for pmf description
+    """Equilibrium constant of ATP synthase. Adjusted for pmf description.
+
     For more information see Matuszynska et al 2016 or Ebenhöh et al. 2011,2014
     """
-
-    DG = DeltaG0_ATP - F * pmf * HPR
-    Keq = Pi_mol * np.exp(-DG / (R * T))
-    return Keq
+    DG = delta_g0_atp - f * pmf * hpr
+    return pi_mol * np.exp(-DG / (r * t))
 
 
-def ATP_pmf_act(
+def _atp_pmf_act(
     pmf: float,
-    pK0E: float,
+    p_k0_e: float,
     b: float,
     e: float,
-    F: float,  # kJ per volt–gram-equivalent
-    R: float,
-    T: float,  # K
+    f: float,  # kJ per volt-gram-equivalent
+    r: float,
+    t: float,  # K
 ) -> float:
-    """pmf regulation of ATPsynthase"""
-
-    x = np.log(10 ** (-pK0E)) + b * (pmf * F) / (R * T)
-    ATP_pmf_act = e**x / (1 + e**x)
-    return ATP_pmf_act
+    """Pmf regulation of ATPsynthase"""
+    x = np.log(10 ** (-p_k0_e)) + b * (pmf * f) / (r * t)
+    return e**x / (1 + e**x)
 
 
-def Fluo(Q, B0, B2, kP, kF, kH_Qslope, kH0):
-    kH = kH0 + kH_Qslope * Q
-    return (kF * B0) / (kF + kP + kH) + (kF * B2) / (kF + kH)
+def _fluo(
+    q: float,
+    b0: float,
+    b2: float,
+    k_p: float,
+    k_f: float,
+    k_h_qslope: float,
+    k_h0: float,
+) -> float:
+    kH = k_h0 + k_h_qslope * q
+    return (k_f * b0) / (k_f + k_p + kH) + (k_f * b2) / (k_f + kH)
 
 
-def kquencher(s, q, kH_Qslope, kH0):
-    return (kH0 + kH_Qslope * q) * s
+def _kquencher(
+    s: float,
+    q: float,
+    k_h_qslope: float,
+    k_h0: float,
+) -> float:
+    return (k_h0 + k_h_qslope * q) * s
 
 
-def Quencher(
-    PsbS: float,
-    Vx: float,
-    Xtot: float,
-    PsbStot: float,
-    Kzsat: float,
+def _quencher(
+    psb_s: float,
+    vx: float,
+    xtot: float,
+    psb_stot: float,
+    kzsat: float,
     gamma0: float,
     gamma1: float,
     gamma2: float,
     gamma3: float,
 ) -> float:
-    """
-    Quencher mechanism - Anna 2016 model
+    """Quencher mechanism - Anna 2016 model
 
     accepts:
     Pr: fraction of non-protonated PsbS protein
     V: fraction of Violaxanthin
     """
-    Z = Xtot - Vx
-    P = PsbStot - PsbS
-    Zs = Z / (Z + Kzsat)
+    Z = xtot - vx
+    P = psb_stot - psb_s
+    Zs = Z / (Z + kzsat)
 
-    Q = (
-        gamma0 * (1 - Zs) * PsbS
+    return (
+        gamma0 * (1 - Zs) * psb_s
         + gamma1 * (1 - Zs) * P
         + gamma2 * Zs * P
-        + gamma3 * Zs * PsbS
+        + gamma3 * Zs * psb_s
     )
-    return Q
 
 
-def quencher_q0(Psbs, Vx, y0):
+def _quencher_q0(
+    psbs: float,
+    vx: float,
+    y0: float,
+) -> float:
     """co-operative 4-state quenching mechanism"""
     # gamma0: slow quenching of (Vx - protonation)
-    return y0 * Vx * Psbs
+    return y0 * vx * psbs
 
 
-def quencher_q1(Vx, Psbsp, y1):
+def _quencher_q1(
+    vx: float,
+    psbsp: float,
+    y1: float,
+) -> float:
     """co-operative 4-state quenching mechanism"""
     # gamma1: fast quenching (Vx + protonation)
-    return y1 * Vx * Psbsp
+    return y1 * vx * psbsp
 
 
-def quencher_q2(Psbsp, Zx, y2):
+def _quencher_q2(
+    psbsp: float,
+    zx: float,
+    y2: float,
+) -> float:
     """co-operative 4-state quenching mechanism"""
     # gamma2: fastest possible quenching (Zx + protonation)
-    return y2 * Zx * Psbsp
+    return y2 * zx * psbsp
 
 
-def quencher_q3(Psbs, Zx, y3):
+def _quencher_q3(
+    psbs: float,
+    zx: float,
+    y3: float,
+) -> float:
     """co-operative 4-state quenching mechanism"""
     # gamma3: slow quenching of Zx present (Zx - protonation)
-    return y3 * Zx * (Psbs)
+    return y3 * zx * (psbs)
 
 
-def quencher_total(q1, q2, q3, q4):
+def _quencher_total(
+    q1: float,
+    q2: float,
+    q3: float,
+    q4: float,
+) -> float:
     return q1 + q2 + q3 + q4
 
 
-###################################################################
+def _deltap_h_to_v(
+    delta_p_h: float,
+    r: float,
+    t: float,
+    f: float,
+) -> float:
+    return -np.log(10) * ((r * t) / f) * delta_p_h
 
-# ========= PMF ============#
 
-
-def deltapH_to_V(delta_pH: float, R: float, T: float, F: float) -> float:
-    return -np.log(10) * ((R * T) / F) * delta_pH
-
-
-def delta_ph(pH_lumen: float, pH_stoma: float) -> float:
+def _delta_ph(
+    p_h_lumen: float,
+    p_h_stoma: float,
+) -> float:
     """
-    calculation of pH difference between stroma and thylakoid lumen
+    Calculation of pH difference between stroma and thylakoid lumen
 
     Accepts:
 
@@ -338,32 +429,38 @@ def delta_ph(pH_lumen: float, pH_stoma: float) -> float:
     pH_stroma: stroma pH
 
     """
-
-    delta_pH = pH_lumen - pH_stoma
-
-    return delta_pH
+    return p_h_lumen - p_h_stoma
 
 
-def voltage_turnover_molChl_per_mmol(
-    capacitance_specific: float, molChl_per_area_membrane: float, F: float
+def _voltage_turnover_mol_chl_per_mmol(
+    capacitance_specific: float,
+    mol_chl_per_area_membrane: float,
+    f: float,
 ) -> float:
-    area_permolChl = 1 / molChl_per_area_membrane
-    voltage = F / (capacitance_specific * area_permolChl)
-    return voltage
+    area_permolChl = 1 / mol_chl_per_area_membrane
+    return f / (capacitance_specific * area_permolChl)
 
 
-def initial_delta_psi(delta_pH: float, R: float, F: float, T: float) -> float:
-    """
-    Estimation of delta psi in the dark - assuming delta_pH and delta_psi have equal contribution to pmf
-    """
-    return -np.log(10) * ((R * T) / F) * delta_pH
-
-
-def proton_motive_force(
-    delta_ph: float, delta_psi: float, F: float, T: float, R: float
+def _initial_delta_psi(
+    delta_p_h: float,
+    r: float,
+    f: float,
+    t: float,
 ) -> float:
-    """
-    proton motive force formula - taken from Lowe & Jones (1984) https://doi.org/10.1016/0968-0004(84)90038-0
+    """Estimation of delta psi in the dark - assuming delta_pH and delta_psi have equal contribution to pmf"""
+    return -np.log(10) * ((r * t) / f) * delta_p_h
+
+
+def _proton_motive_force(
+    _delta_ph: float,
+    delta_psi: float,
+    f: float,
+    t: float,
+    r: float,
+) -> float:
+    """Proton motive force formula - taken from Lowe & Jones (1984).
+
+    https://doi.org/10.1016/0968-0004(84)90038-0
 
     Accepts:
     delta_ph: pH different between the thylakoid lumen and the stroma
@@ -372,209 +469,241 @@ def proton_motive_force(
     R: gas constant
     T: temperature (K)
     """
-
-    pmf = delta_psi - np.log(10) * ((R * T) / F) * delta_ph
-
-    return pmf
+    return delta_psi - np.log(10) * ((r * t) / f) * _delta_ph
 
 
-def pHmod(pH: float, pKreg: float) -> float:
-    return 1 - (1 / (10 ** (pH - pKreg) + 1))
+def _p_hmod(
+    p_h: float,
+    p_kreg: float,
+) -> float:
+    return 1 - (1 / (10 ** (p_h - p_kreg) + 1))
 
 
-def k_b6f(pHmod: float, k_b6f: float) -> float:
-    b6f_deprot = pHmod * k_b6f
-    return b6f_deprot
+def _k_b6f(
+    _p_hmod: float,
+    _k_b6f: float,
+) -> float:
+    return _p_hmod * _k_b6f
 
 
-def reg_KEA3(reg_KEA3_ATP: float, reg_KEA3_pH: float) -> float:
-    return reg_KEA3_ATP * reg_KEA3_pH
+def _reg_kea3(
+    _reg_kea3_atp: float,
+    _reg_kea3_p_h: float,
+) -> float:
+    return _reg_kea3_atp * _reg_kea3_p_h
 
 
-def reg_KEA3_pH(pHlumen: float, pK_KEA3: float) -> float:
-    pH_act = 10 ** (pHlumen - pK_KEA3) / (10 ** (pHlumen - pK_KEA3) + 1)
-    return pH_act
+def _reg_kea3_p_h(
+    p_hlumen: float,
+    p_k_kea3: float,
+) -> float:
+    return 10 ** (p_hlumen - p_k_kea3) / (10 ** (p_hlumen - p_k_kea3) + 1)
 
 
-def reg_KEA3_ATP(ATP: float, ATP_thres: float, c: float) -> float:
-    ATP_inhib = (1 - c) / (1 + np.exp((ATP - ATP_thres) / c))
-    return ATP_inhib
+def _reg_kea3_atp(
+    atp: float,
+    atp_thres: float,
+    c: float,
+) -> float:
+    return (1 - c) / (1 + np.exp((atp - atp_thres) / c))
 
 
-def vKEA3_in(
-    Klumen: float,
-    Hlumen: float,
-    Kstroma: float,
-    k_KEA3: float,
-    Hstroma: float,
-    reg_KEA3: float,
+def _v_kea3_in(
+    klumen: float,
+    hlumen: float,
+    kstroma: float,
+    k_kea3: float,
+    hstroma: float,
+    _reg_kea3: float,
     stroma_volume_per_area_membrane: float,
-    Chl_per_area_membrane: float,
+    chl_per_area_membrane: float,
 ) -> float:
     return float(
         max(
-            conc_to_mmol(
-                (k_KEA3 * (Hlumen * Kstroma - Hstroma * Klumen) * reg_KEA3),
+            _conc_to_mmol(
+                (k_kea3 * (hlumen * kstroma - hstroma * klumen) * _reg_kea3),
                 stroma_volume_per_area_membrane,
-                Chl_per_area_membrane,
+                chl_per_area_membrane,
             ),
             0,
         )
     )
 
 
-def vKEA3_out(
-    Klumen: float,
-    Hlumen: float,
-    Kstroma: float,
-    k_KEA3: float,
-    Hstroma: float,
-    reg_KEA3: float,
+def _v_kea3_out(
+    klumen: float,
+    hlumen: float,
+    kstroma: float,
+    k_kea3: float,
+    hstroma: float,
+    _reg_kea3: float,
     lumen_volume_per_area_membrane: float,
-    Chl_per_area_membrane: float,
+    chl_per_area_membrane: float,
 ) -> float:
 
     return float(
         max(
-            conc_to_mmol(
-                (k_KEA3 * (Hstroma * Klumen - Hlumen * Kstroma) * reg_KEA3),
+            _conc_to_mmol(
+                (k_kea3 * (hstroma * klumen - hlumen * kstroma) * _reg_kea3),
                 lumen_volume_per_area_membrane,
-                Chl_per_area_membrane,
+                chl_per_area_membrane,
             ),
             0,
         )
     )
 
 
-def vps2(B1: float, kP: float) -> float:
+def _vps2(
+    b1: float,
+    k_p: float,
+) -> float:
     """Reduction of PQ due to ps2"""
-    v = kP * 0.5 * B1
-    return v
+    return k_p * 0.5 * b1
 
 
-def vPQox(
-    PQH2: float,
+def _v_p_qox(
+    pqh2: float,
     pfd: float,
-    kCytb6f: float,
-    kPTOX: float,
-    O2ex: float,
-    PQtot: float,
-    Keq: float,
+    k_cytb6f: float,
+    k_ptox: float,
+    o2ex: float,
+    p_qtot: float,
+    keq: float,
 ) -> float:
     """Oxidation of the PQ pool through cytochrome and PTOX"""
-    kPFD = kCytb6f * (pfd)
-    kPTOX = kPTOX * O2ex
-    a1 = kPFD * Keq / (Keq + 1)
-    a2 = kPFD / (Keq + 1)
-    v = (a1 + kPTOX) * PQH2 - a2 * (PQtot - PQH2)
-    return v
+    kPFD = k_cytb6f * (pfd)
+    k_ptox = k_ptox * o2ex
+    a1 = kPFD * keq / (keq + 1)
+    a2 = kPFD / (keq + 1)
+    return (a1 + k_ptox) * pqh2 - a2 * (p_qtot - pqh2)
 
 
-def vATPactivity(
-    ATPactivity: float, light: float, kActATPase: float, kDeactATPase: float
+def _v_at_pactivity(
+    at_pactivity: float,
+    light: float,
+    k_act_at_pase: float,
+    k_deact_at_pase: float,
 ) -> float:
     """Activation of ATPsynthase by light"""
     switch = light > 0.0
-    v = (
-        kActATPase * switch * (1 - ATPactivity)
-        - kDeactATPase * (1 - switch) * ATPactivity
+    return (
+        k_act_at_pase * switch * (1 - at_pactivity)
+        - k_deact_at_pase * (1 - switch) * at_pactivity
     )
-    return v
 
 
-def vATPsynthase(
-    ATP: float,
-    ADP: float,
-    KeqATPsyn: float,
-    ATPactivity: float,
-    ATP_pmf_act: float,
-    kATPsynthase: float,  # mmol per mol Chl
+def _v_at_psynthase(
+    atp: float,
+    adp: float,
+    _keq_at_psyn: float,
+    at_pactivity: float,
+    _atp_pmf_act: float,
+    k_at_psynthase: float,  # mmol per mol Chl
 ) -> float:
     """Production of ATP by ATPsynthase - pmf regulation implemented"""
-
-    v = ATPactivity * ATP_pmf_act * kATPsynthase * (ADP - ATP / KeqATPsyn)
-    return v
+    return at_pactivity * _atp_pmf_act * k_at_psynthase * (adp - atp / _keq_at_psyn)
 
 
-def vATPcons(ATP: float, kATPconsumption: float) -> float:
+def _v_at_pcons(
+    atp: float,
+    k_at_pconsumption: float,
+) -> float:
     """ATP consuming reaction"""
-    v = kATPconsumption * ATP
-    return v
+    return k_at_pconsumption * atp
 
 
-def vLeak(H_lumen_conc: float, kleak: float, H_stroma_conc: float):
+def _v_leak(
+    h_lumen_conc: float,
+    kleak: float,
+    h_stroma_conc: float,
+) -> float:
     """Transmembrane proton leak"""
-    v = kleak * (H_lumen_conc - H_stroma_conc)
-    return v
+    return kleak * (h_lumen_conc - h_stroma_conc)
 
 
-def vXdeepox(
-    Vx: float,
-    H: float,
-    nHX: float,
-    KphSatZ: float,
-    kDeepoxV: float,
+def _v_xdeepox(
+    vx: float,
+    h: float,
+    n_hx: float,
+    kph_sat_z: float,
+    k_deepox_v: float,
     volume_per_area_membrane: float,
-    Chl_per_area_membrane: float,
+    chl_per_area_membrane: float,
 ) -> float:
     """Deepoxidation of Vx"""
-    a = H**nHX / (
-        H**nHX
-        + calculate_pHinv(KphSatZ, volume_per_area_membrane, Chl_per_area_membrane)
-        ** nHX
+    a = h**n_hx / (
+        h**n_hx
+        + _calculate_p_hinv(
+            kph_sat_z,
+            volume_per_area_membrane,
+            chl_per_area_membrane,
+        )
+        ** n_hx
     )
-    v = kDeepoxV * a
-    vv = v * Vx
-    return vv
+    v = k_deepox_v * a
+    return v * vx
 
 
-def vEpoxZ(
-    Zx: float,
-    kEpoxZ: float,
+def _v_epox_z(
+    zx: float,
+    k_epox_z: float,
 ) -> float:
     """Deepoxidation of Vx"""
-    return kEpoxZ * Zx
+    return k_epox_z * zx
 
 
-def vPsbSP(
-    PsbS: float,
-    H: float,
-    nHL: float,
-    KphSatLHC: float,
-    kProt: float,
+def _v_psb_sp(
+    psb_s: float,
+    h: float,
+    n_hl: float,
+    kph_sat_lhc: float,
+    k_prot: float,
     volume_per_area_membrane: float,
-    Chl_per_area_membrane: float,
+    chl_per_area_membrane: float,
 ) -> float:
-    """Protonation of PsbS protein - Modified for Zx inhibition effect
+    """Protonation of PsbS protein - Modified for Zx inhibition effect.
+
     Zx is assmuned to inhibit the deprotonation of PsbS
     """
-    a = H**nHL / (
-        H**nHL
-        + calculate_pHinv(KphSatLHC, volume_per_area_membrane, Chl_per_area_membrane)
-        ** nHL
+    a = h**n_hl / (
+        h**n_hl
+        + _calculate_p_hinv(
+            kph_sat_lhc,
+            volume_per_area_membrane,
+            chl_per_area_membrane,
+        )
+        ** n_hl
     )
-    return kProt * a * PsbS
+    return k_prot * a * psb_s
 
 
-def deprot_act(KZsat: float, nHZ: float, Zx: float) -> float:
-    """
-    Inhibition effect of Zx on PsbS deprotonation.
-    """
-    return KZsat**nHZ / (KZsat**nHZ + Zx**nHZ)
+def _deprot_act(
+    k_zsat: float,
+    n_hz: float,
+    zx: float,
+) -> float:
+    """Inhibition effect of Zx on PsbS deprotonation."""
+    return k_zsat**n_hz / (k_zsat**n_hz + zx**n_hz)
 
 
-def vPsbS(
-    PsbSP: float,
-    kDeprot: float,
+def _v_psb_s(
+    psb_sp: float,
+    k_deprot: float,
     psbs_deprot_act: float,
 ) -> float:
-    """Deprotonation of PsbS protein - Modified for Zx inhibition effect
+    """Deprotonation of PsbS protein - Modified for Zx inhibition effect.
+
     Zx is assmuned to inhibit the deprotonation of PsbS
     """
-    return kDeprot * psbs_deprot_act * PsbSP
+    return k_deprot * psbs_deprot_act * psb_sp
 
 
 def create_model() -> Model:
+    """NPQ model for tomato.
+
+    Adapted from the original NPQ model for Arabidopsis - without the light conversion fn
+    Rewritten for better implentation
+    """
     m = Model()
 
     m.add_variables(
@@ -585,7 +714,7 @@ def create_model() -> Model:
             "PQH2": 0.0,
             "ATP": 25.0,
             n.h_lumen: InitialAssignment(
-                fn=calculate_pHinv,
+                fn=_calculate_p_hinv,
                 args=[
                     "pHlumen_init",
                     "lumen_volume_per_area_membrane",
@@ -593,13 +722,13 @@ def create_model() -> Model:
                 ],
             ),
             n.delta_psi: InitialAssignment(
-                fn=initial_delta_psi, args=[n.delta_pH, "R", "T", "F"]
+                fn=_initial_delta_psi, args=[n.delta_ph, "R", "T", "F"]
             ),
             "Vx": 1.0,
             "PsbS": 1.0,
             "ATPactivity": 0.1,
             n.k_lumen: InitialAssignment(
-                fn=conc_to_mmol,
+                fn=_conc_to_mmol,
                 args=[
                     "K_lumen_conc_initial",
                     "lumen_volume_per_area_membrane",
@@ -607,7 +736,7 @@ def create_model() -> Model:
                 ],
             ),
             n.k_stroma: InitialAssignment(
-                fn=conc_to_mmol,
+                fn=_conc_to_mmol,
                 args=[
                     "K_stroma_conc_initial",
                     "stroma_volume_per_area_membrane",
@@ -619,25 +748,37 @@ def create_model() -> Model:
 
     m.add_parameters(par)
 
-    m.add_derived("RT", propotional, args=["R", "T"])
+    m.add_derived(
+        "RT",
+        _propotional,
+        args=["R", "T"],
+    )
 
     m.add_derived(
-        n.pH_lumen,
-        calculate_pH,
-        args=[n.h_lumen, "lumen_volume_per_area_membrane", "molChl_per_area_membrane"],
+        n.ph_lumen,
+        _calculate_p_h,
+        args=[
+            n.h_lumen,
+            "lumen_volume_per_area_membrane",
+            "molChl_per_area_membrane",
+        ],
     )
 
     m.add_derived(
         "H_lumen_conc",
-        mmol_to_conc,
-        args=[n.h_lumen, "lumen_volume_per_area_membrane", "molChl_per_area_membrane"],
+        _mmol_to_conc,
+        args=[
+            n.h_lumen,
+            "lumen_volume_per_area_membrane",
+            "molChl_per_area_membrane",
+        ],
     )
 
     m.add_derived(
         n.h_stroma,
-        calculate_pHinv,
+        _calculate_p_hinv,
         args=[
-            n.pH_stroma,
+            n.ph_stroma,
             "stroma_volume_per_area_membrane",
             "molChl_per_area_membrane",
         ],
@@ -645,7 +786,7 @@ def create_model() -> Model:
 
     m.add_derived(
         "H_stroma_conc",
-        mmol_to_conc,
+        _mmol_to_conc,
         args=[
             n.h_stroma,
             "stroma_volume_per_area_membrane",
@@ -653,160 +794,237 @@ def create_model() -> Model:
         ],
     )
 
-    m.add_derived(n.delta_pH, delta_ph, args=[n.pH_lumen, n.pH_stroma])
-    m.add_derived("delta_pH_V", deltapH_to_V, args=[n.delta_pH, "R", "T", "F"])
+    m.add_derived(
+        n.delta_ph,
+        _delta_ph,
+        args=[n.ph_lumen, n.ph_stroma],
+    )
+    m.add_derived(
+        "delta_pH_V",
+        _deltap_h_to_v,
+        args=[n.delta_ph, "R", "T", "F"],
+    )
 
     m.add_derived(
-        n.pmf, proton_motive_force, args=[n.delta_pH, n.delta_psi, "F", "T", "R"]
+        n.pmf,
+        _proton_motive_force,
+        args=[n.delta_ph, n.delta_psi, "F", "T", "R"],
     )
 
     m.add_derived(
         "volts_per_charge",
-        voltage_turnover_molChl_per_mmol,
-        args=["thylakoid_membrane_capacitance", "molChl_per_area_membrane", "F"],
+        _voltage_turnover_mol_chl_per_mmol,
+        args=[
+            "thylakoid_membrane_capacitance",
+            "molChl_per_area_membrane",
+            "F",
+        ],
     )
 
-    m.add_derived(n.pq, moiety, args=["PQH2", "PQtot"])
-
-    m.add_derived(n.adp, moiety, args=["ATP", "APtot"])
-
-    m.add_derived("PsbSP", moiety, args=["PsbS", "PsbStot"])
-
-    m.add_derived(n.zx, moiety, args=["Vx", "Xtot"])
+    m.add_derived(
+        n.pq,
+        _moiety,
+        args=["PQH2", "PQtot"],
+    )
 
     m.add_derived(
-        "Keq_PQH2", _KeqQAPQ, args=["F", "E0QAQAm", "E0PQPQH2", n.pH_stroma, "R", "T"]
+        n.adp,
+        _moiety,
+        args=["ATP", "APtot"],
+    )
+
+    m.add_derived(
+        "PsbSP",
+        _moiety,
+        args=["PsbS", "PsbStot"],
+    )
+
+    m.add_derived(
+        n.zx,
+        _moiety,
+        args=["Vx", "Xtot"],
+    )
+
+    m.add_derived(
+        "Keq_PQH2",
+        _keq_qapq,
+        args=["F", "E0QAQAm", "E0PQPQH2", n.ph_stroma, "R", "T"],
     )
 
     m.add_derived(
         "Keqcytb6f",
-        Keq_cytb6f,
-        args=[n.pH_lumen, "F", "E0PQPQH2", "E0PCPCm", n.pmf, "R", "T"],
+        _keq_cytb6f,
+        args=[n.ph_lumen, "F", "E0PQPQH2", "E0PCPCm", n.pmf, "R", "T"],
     )
 
     m.add_derived(
-        "KeqATPsyn", KeqATPsyn, args=[n.pmf, "DeltaG0_ATP", "R", "T", "F", "HPR", "Pi"]
+        "KeqATPsyn",
+        _keq_at_psyn,
+        args=[n.pmf, "DeltaG0_ATP", "R", "T", "F", "HPR", "Pi"],
     )
 
     m.add_derived(
         "ATP_pmf_act",
-        ATP_pmf_act,
+        _atp_pmf_act,
         args=[n.pmf, "pKE0", "b", "e", "F", "R", "T"],
     )
 
     m.add_derived(
         "pHmod",
-        pHmod,
-        args=[n.pH_lumen, "pKreg"],
+        _p_hmod,
+        args=[n.ph_lumen, "pKreg"],
     )
 
     m.add_derived(
         "k_cytb6f",
-        k_b6f,
+        _k_b6f,
         args=["pHmod", n.k("b6f")],
     )
 
-    m.add_derived("Q0", quencher_q0, args=[n.psbs, n.vx, "gamma0"])
+    m.add_derived(
+        "Q0",
+        _quencher_q0,
+        args=[n.psbs, n.vx, "gamma0"],
+    )
 
-    m.add_derived("Q1", quencher_q1, args=[n.vx, n.psbsp, "gamma1"])
+    m.add_derived(
+        "Q1",
+        _quencher_q1,
+        args=[n.vx, n.psbsp, "gamma1"],
+    )
 
-    m.add_derived("Q2", quencher_q2, args=[n.psbsp, n.zx, "gamma2"])
+    m.add_derived(
+        "Q2",
+        _quencher_q2,
+        args=[n.psbsp, n.zx, "gamma2"],
+    )
 
-    m.add_derived("Q3", quencher_q3, args=[n.psbs, n.zx, "gamma3"])
+    m.add_derived(
+        "Q3",
+        _quencher_q3,
+        args=[n.psbs, n.zx, "gamma3"],
+    )
 
-    m.add_derived(n.quencher, quencher_total, args=["Q0", "Q1", "Q2", "Q3"])
+    m.add_derived(
+        n.quencher,
+        _quencher_total,
+        args=["Q0", "Q1", "Q2", "Q3"],
+    )
 
-    m.add_derived(name=n.b3(), fn=moiety_3, args=[n.b0(), n.b1(), n.b2(), "PSIItot"])
+    m.add_derived(
+        name=n.b3(),
+        fn=_moiety_3,
+        args=[n.b0(), n.b1(), n.b2(), "PSIItot"],
+    )
 
-    m.add_derived(name="rel_B0", fn=normalize_concentration, args=[n.b0(), "PSIItot"])
-    m.add_derived(name="rel_B1", fn=normalize_concentration, args=[n.b1(), "PSIItot"])
-    m.add_derived(name="rel_B2", fn=normalize_concentration, args=[n.b2(), "PSIItot"])
-    m.add_derived(name="rel_B3", fn=normalize_concentration, args=[n.b3(), "PSIItot"])
+    m.add_derived(
+        name="rel_B0",
+        fn=_normalize_concentration,
+        args=[n.b0(), "PSIItot"],
+    )
+    m.add_derived(
+        name="rel_B1",
+        fn=_normalize_concentration,
+        args=[n.b1(), "PSIItot"],
+    )
+    m.add_derived(
+        name="rel_B2",
+        fn=_normalize_concentration,
+        args=[n.b2(), "PSIItot"],
+    )
+    m.add_derived(
+        name="rel_B3",
+        fn=_normalize_concentration,
+        args=[n.b3(), "PSIItot"],
+    )
 
     m.add_derived(
         name=n.fluo,
-        fn=Fluo,
+        fn=_fluo,
         args=[n.quencher, n.b0(), n.b2(), "kP", "kF", "kH_Qslope", "kH0"],
     )
 
     m.add_reaction(
         name="B01",
-        fn=mass_action_1s,
+        fn=_mass_action_1s,
         stoichiometry={n.b0(): -2, n.b1(): 2},
         args=[n.b0(), n.light],
     )
 
     m.add_reaction(
         name="B10Q",
-        fn=kquencher,
+        fn=_kquencher,
         stoichiometry={n.b1(): -2, n.b0(): 2},
         args=[n.b1(), n.quencher, "kH_Qslope", "kH0"],
     )
 
     m.add_reaction(
         name="B10F",
-        fn=mass_action_1s,
+        fn=_mass_action_1s,
         stoichiometry={n.b1(): -2, n.b0(): 2},
         args=[n.b1(), "kF"],
     )
 
     m.add_reaction(
         name="vps2",
-        fn=vps2,
+        fn=_vps2,
         stoichiometry={
             n.b1(): -2,
             n.b2(): 2,
-            n.h_lumen: Derived(fn=two_times_inverse, args=["bH"]),
-            n.delta_psi: Derived(fn=two_times_ratio, args=["bH", "volts_per_charge"]),
+            n.h_lumen: Derived(fn=_two_times_inverse, args=["bH"]),
+            n.delta_psi: Derived(fn=_two_times_ratio, args=["bH", "volts_per_charge"]),
         },
         args=[n.b1(), "kP"],
     )
 
     m.add_reaction(
         name="B20",
-        fn=mass_action2_rev,
+        fn=_mass_action2_rev,
         stoichiometry={n.b2(): -2, n.pqh2: 1, n.b0(): 2},
         args=[n.b2(), n.pq, n.pqh2, n.b0(), "kPQH2", "Keq_PQH2"],
     )
 
     m.add_reaction(
         name="B23",
-        fn=mass_action_1s,
+        fn=_mass_action_1s,
         stoichiometry={n.b2(): -2},
         args=[n.b2(), n.light],
     )
     m.add_reaction(
-        name="B32F", fn=mass_action_1s, stoichiometry={n.b2(): 2}, args=[n.b3(), "kF"]
+        name="B32F",
+        fn=_mass_action_1s,
+        stoichiometry={n.b2(): 2},
+        args=[n.b3(), "kF"],
     )
 
     m.add_reaction(
         name="B32Q",
-        fn=kquencher,
+        fn=_kquencher,
         stoichiometry={n.b2(): 2},
         args=[n.b3(), n.quencher, "kH_Qslope", "kH0"],
     )
 
     m.add_reaction(
         "vPQox",
-        vPQox,
+        _v_p_qox,
         args=["PQH2", n.light, "k_cytb6f", "kPTOX", "O2ex", "PQtot", "Keqcytb6f"],
         stoichiometry={
             "PQH2": -1,
-            n.h_lumen: Derived(fn=four_times_inverse, args=["bH"]),
-            n.delta_psi: Derived(fn=four_times_ratio, args=["bH", "volts_per_charge"]),
+            n.h_lumen: Derived(fn=_four_times_inverse, args=["bH"]),
+            n.delta_psi: Derived(fn=_four_times_ratio, args=["bH", "volts_per_charge"]),
         },
     )
 
     m.add_reaction(
         "vATPactivity",
-        vATPactivity,
+        _v_at_pactivity,
         args=["ATPactivity", n.light, "kActATPase", "kDeactATPase"],
         stoichiometry={"ATPactivity": 1},
     )
 
     m.add_reaction(
         name="vATPsynthase",
-        fn=vATPsynthase,
+        fn=_v_at_psynthase,
         args=[
             n.atp,
             n.adp,
@@ -816,31 +1034,34 @@ def create_model() -> Model:
             "kATPsynthase",
         ],
         stoichiometry={
-            n.h_lumen: Derived(fn=divide_negative, args=["HPR", "bH"]),
+            n.h_lumen: Derived(fn=_divide_negative, args=["HPR", "bH"]),
             "ATP": 1,
             n.delta_psi: Derived(
-                fn=ATPsyn_stoi, args=["HPR", "bH", "volts_per_charge"]
+                fn=_at_psyn_stoi, args=["HPR", "bH", "volts_per_charge"]
             ),
         },
     )
 
     m.add_reaction(
-        "vATPcons", vATPcons, stoichiometry={"ATP": -1}, args=["ATP", "kATPconsumption"]
+        "vATPcons",
+        _v_at_pcons,
+        stoichiometry={"ATP": -1},
+        args=["ATP", "kATPconsumption"],
     )
 
     m.add_reaction(
         name="vleak",
-        fn=vLeak,
+        fn=_v_leak,
         args=["H_lumen_conc", "kleak", "H_stroma_conc"],
         stoichiometry={
-            n.h_lumen: Derived(fn=inverse_negative, args=["bH"]),
-            n.delta_psi: Derived(fn=divide_negative, args=["volts_per_charge", "bH"]),
+            n.h_lumen: Derived(fn=_inverse_negative, args=["bH"]),
+            n.delta_psi: Derived(fn=_divide_negative, args=["volts_per_charge", "bH"]),
         },
     )
 
     m.add_reaction(
         "vXdeepox",
-        vXdeepox,
+        _v_xdeepox,
         args=[
             "Vx",
             n.h_lumen,
@@ -855,7 +1076,7 @@ def create_model() -> Model:
 
     m.add_reaction(
         "vEpoxZ",
-        vEpoxZ,
+        _v_epox_z,
         args=[
             "Zx",
             "kEpoxZ",
@@ -863,11 +1084,15 @@ def create_model() -> Model:
         stoichiometry={"Vx": 1},
     )
 
-    m.add_derived("PsbS_deprot_act", deprot_act, args=["KZsat", "nHZ", n.zx])
+    m.add_derived(
+        "PsbS_deprot_act",
+        _deprot_act,
+        args=["KZsat", "nHZ", n.zx],
+    )
 
     m.add_reaction(
         name="vPsbSP",
-        fn=vPsbSP,
+        fn=_v_psb_sp,
         args=[
             n.psbs,
             n.h_lumen,
@@ -884,7 +1109,7 @@ def create_model() -> Model:
 
     m.add_reaction(
         name="vPsbS",
-        fn=vPsbS,
+        fn=_v_psb_s,
         args=[n.psbsp, "kDeprot", "PsbS_deprot_act"],
         stoichiometry={
             n.psbs: 1,
@@ -893,7 +1118,7 @@ def create_model() -> Model:
 
     m.add_derived(
         "K_stroma_conc",
-        mmol_to_conc,
+        _mmol_to_conc,
         args=[
             n.k_stroma,
             "stroma_volume_per_area_membrane",
@@ -903,19 +1128,35 @@ def create_model() -> Model:
 
     m.add_derived(
         "K_lumen_conc",
-        mmol_to_conc,
-        args=[n.k_lumen, "lumen_volume_per_area_membrane", "molChl_per_area_membrane"],
+        _mmol_to_conc,
+        args=[
+            n.k_lumen,
+            "lumen_volume_per_area_membrane",
+            "molChl_per_area_membrane",
+        ],
     )
 
-    m.add_derived("reg_KEA3_ATP", reg_KEA3_ATP, args=[n.atp, "ATP_thres_KEA3", "c"])
+    m.add_derived(
+        "reg_KEA3_ATP",
+        _reg_kea3_atp,
+        args=[n.atp, "ATP_thres_KEA3", "c"],
+    )
 
-    m.add_derived("reg_KEA3_pH", reg_KEA3_pH, args=[n.pH_lumen, "pK_KEA3"])
+    m.add_derived(
+        "reg_KEA3_pH",
+        _reg_kea3_p_h,
+        args=[n.ph_lumen, "pK_KEA3"],
+    )
 
-    m.add_derived("reg_KEA3", reg_KEA3, args=["reg_KEA3_ATP", "reg_KEA3_pH"])
+    m.add_derived(
+        "reg_KEA3",
+        _reg_kea3,
+        args=["reg_KEA3_ATP", "reg_KEA3_pH"],
+    )
 
     m.add_reaction(
         name="vKEA3_in",
-        fn=vKEA3_in,
+        fn=_v_kea3_in,
         args=[
             "K_lumen_conc",
             "H_lumen_conc",
@@ -927,7 +1168,7 @@ def create_model() -> Model:
             "molChl_per_area_membrane",
         ],
         stoichiometry={
-            n.h_lumen: Derived(fn=inverse_negative, args=["bH"]),
+            n.h_lumen: Derived(fn=_inverse_negative, args=["bH"]),
             n.k_lumen: 1,
             n.k_stroma: -1,
         },
@@ -935,7 +1176,7 @@ def create_model() -> Model:
 
     m.add_reaction(
         name="vKEA3_out",
-        fn=vKEA3_out,
+        fn=_v_kea3_out,
         args=[
             "K_lumen_conc",
             "H_lumen_conc",
@@ -947,7 +1188,7 @@ def create_model() -> Model:
             "molChl_per_area_membrane",
         ],
         stoichiometry={
-            n.h_lumen: Derived(fn=inverse, args=["bH"]),
+            n.h_lumen: Derived(fn=_inverse, args=["bH"]),
             n.k_lumen: -1,
             n.k_stroma: 1,
         },

@@ -107,19 +107,19 @@ def a0(compartment: str = EMPTY, tissue: str = EMPTY) -> str:
     return loc("A0", compartment, tissue)
 
 
-def P700FA(compartment: str = EMPTY, tissue: str = EMPTY) -> str:
+def p700_fa(compartment: str = EMPTY, tissue: str = EMPTY) -> str:
     return loc("P700FA", compartment, tissue)
 
 
-def P700plusFAminus(compartment: str = EMPTY, tissue: str = EMPTY) -> str:
+def p700_plus_fa_minus(compartment: str = EMPTY, tissue: str = EMPTY) -> str:
     return loc("P700+FA-", compartment, tissue)
 
 
-def P700FAminus(compartment: str = EMPTY, tissue: str = EMPTY) -> str:
+def p700_fa_minus(compartment: str = EMPTY, tissue: str = EMPTY) -> str:
     return loc("P700FA-", compartment, tissue)
 
 
-def P700plusFA(compartment: str = EMPTY, tissue: str = EMPTY) -> str:
+def p700_plus_fa(compartment: str = EMPTY, tissue: str = EMPTY) -> str:
     return loc("P700+FA", compartment, tissue)
 
 
@@ -226,10 +226,10 @@ k_stroma = "K_stroma"
 h_lumen = "H_lumen"
 h_stroma = "H_stroma"
 
-pH_lumen = "pH_lumen"
-pH_stroma = "pH_stroma"
+ph_lumen = "pH_lumen"
+ph_stroma = "pH_stroma"
 
 pmf = "pmf(V)"
 delta_psi = "delta_psi"  # r'$\Delta \Psi$'
-delta_pH = "delta_pH"  # r'$\Delta pH$'
+delta_ph = "delta_pH"  # r'$\Delta pH$'
 delta_mu_proton = "delta_mu_proton"  # r'$\Delta \tilde{\mu}_{H^+}$'
