@@ -213,8 +213,8 @@ lhc = "LHC"
 
 atpact = "ATPactivity"
 
-fluo = "Fluorescence"
-light = "pfd"
+fluo = "Fluo"
+light = "PPFD"
 fr_light = "pfd_fr"
 
 temp_c = "temperature(deg.C)"

@@ -517,15 +517,13 @@ def _v_kea3_in(
     stroma_volume_per_area_membrane: float,
     chl_per_area_membrane: float,
 ) -> float:
-    return float(
-        max(
-            _conc_to_mmol(
-                (k_kea3 * (hlumen * kstroma - hstroma * klumen) * _reg_kea3),
-                stroma_volume_per_area_membrane,
-                chl_per_area_membrane,
-            ),
-            0,
-        )
+    return max(
+        _conc_to_mmol(
+            (k_kea3 * (hlumen * kstroma - hstroma * klumen) * _reg_kea3),
+            stroma_volume_per_area_membrane,
+            chl_per_area_membrane,
+        ),
+        0,
     )
 
 
@@ -535,20 +533,18 @@ def _v_kea3_out(
     kstroma: float,
     k_kea3: float,
     hstroma: float,
-    _reg_kea3: float,
+    reg_kea3: float,
     lumen_volume_per_area_membrane: float,
     chl_per_area_membrane: float,
 ) -> float:
 
-    return float(
-        max(
-            _conc_to_mmol(
-                (k_kea3 * (hstroma * klumen - hlumen * kstroma) * _reg_kea3),
-                lumen_volume_per_area_membrane,
-                chl_per_area_membrane,
-            ),
-            0,
-        )
+    return max(
+        _conc_to_mmol(
+            (k_kea3 * (hstroma * klumen - hlumen * kstroma) * reg_kea3),
+            lumen_volume_per_area_membrane,
+            chl_per_area_membrane,
+        ),
+        0,
     )
 
 
@@ -577,18 +573,16 @@ def _v_p_qox(
     return (a1 + k_ptox) * pqh2 - a2 * (p_qtot - pqh2)
 
 
-def _v_at_pactivity(
-    at_pactivity: float,
+def _v_atp_activity(
+    atp_activity: float,
     light: float,
-    k_act_at_pase: float,
-    k_deact_at_pase: float,
+    k_act_atp_ase: float,
+    k_deact_atp_ase: float,
 ) -> float:
     """Activation of ATPsynthase by light"""
-    switch = light > 0.0
-    return (
-        k_act_at_pase * switch * (1 - at_pactivity)
-        - k_deact_at_pase * (1 - switch) * at_pactivity
-    )
+    if light > 0.0:
+        return k_act_atp_ase * (1 - atp_activity)
+    return -k_deact_atp_ase * atp_activity
 
 
 def _v_at_psynthase(
@@ -993,7 +987,7 @@ def get_nguyen2026_tomato() -> Model:
 
     m.add_reaction(
         "vATPactivity",
-        _v_at_pactivity,
+        _v_atp_activity,
         args=["ATPactivity", n.light, "kActATPase", "kDeactATPase"],
         stoichiometry={"ATPactivity": 1},
     )
