@@ -5,6 +5,9 @@ but written as single, flat files to make inspection easier.
 
 """
 
+# Re-export mxlpy modules for easy access
+from mxlpy import Simulator, fit, mc, mca, plot, scan
+
 from . import data
 from .dyn_entro import get_dynamic_enterobactin
 from .ebeling2026 import get_ebeling_2026
@@ -25,7 +28,9 @@ from .tripartite_dynamics import get_tripartite_dynamics
 from .yokota1985 import get_yokota1985
 
 __all__ = [
+    "Simulator",
     "data",
+    "fit",
     "get_dynamic_enterobactin",
     "get_ebeling_2026",
     "get_elowitz2000_repressilator",
@@ -43,4 +48,8 @@ __all__ = [
     "get_selkov1968_glycolysis_oscillator",
     "get_tripartite_dynamics",
     "get_yokota1985",
+    "mc",
+    "mca",
+    "plot",
+    "scan",
 ]
