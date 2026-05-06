@@ -14,6 +14,7 @@ from .lotka_volterra_v2 import create_model as get_lotka_volterra_v2
 from .matuszynska2016_npq import create_model as get_matuszynska2016_npq
 from .matuszynska2016_phd import create_model as get_matuszynska2016_phd
 from .matuszynska2019 import create_model as get_matuszynska2019
+from .nguyen2026_tomato import create_model as get_nguyen2026_tomato
 from .pfennig2024_synechocystis import create_model as get_pfennig2024_synechocystis
 from .poolman2000 import create_model as get_poolman2000
 from .pop_dyn import create_model as get_population_dynamics
@@ -35,6 +36,7 @@ __all__ = [
     "get_matuszynska2016_npq",
     "get_matuszynska2016_phd",
     "get_matuszynska2019",
+    "get_nguyen2026_tomato",
     "get_pfennig2024_synechocystis",
     "get_poolman2000",
     "get_population_dynamics",
