@@ -691,6 +691,10 @@ def _v_psb_s(
     return k_deprot * psbs_deprot_act * psb_sp
 
 
+def _ql(b1: float, b2: float, psii_tot: float) -> float:
+    return (b1 + b2) / psii_tot
+
+
 def get_nguyen2026_tomato() -> Model:
     """NPQ model for tomato.
 
@@ -906,6 +910,11 @@ def get_nguyen2026_tomato() -> Model:
         name="rel_B3",
         fn=_normalize_concentration,
         args=[n.b3(), "PSIItot"],
+    )
+    m.add_derived(
+        name="qL",
+        fn=_ql,
+        args=["B1", "B2", "PSIItot"],
     )
 
     m.add_derived(
