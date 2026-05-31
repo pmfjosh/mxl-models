@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "hatchling.build"
-requires      = ["hatchling"]
+requires = ["hatchling"]
 
 [dependency-groups]
 dev = [
@@ -48,7 +48,7 @@ requires-python = ">=3.13"
 version = "1.2.0"
 
 [tool.hatchling]
-from    = "src"
+from = "src"
 include = ["mxlmodels"]
 
 [tool.pyright]
@@ -68,7 +68,7 @@ strict = []
 
 [tool.ruff]
 indent-width = 4
-line-length  = 88
+line-length = 88
 
 [tool.ruff.lint]
 fixable = ["ALL"]
@@ -131,12 +131,12 @@ convention = "numpy"
 
 [tool.tomlsort]
 spaces_before_inline_comment = 2
-spaces_indent_inline_array   = 2
-trailing_comma_inline_array  = true
+spaces_indent_inline_array = 2
+trailing_comma_inline_array = true
 
 [tool.uv]
 package = true
-exclude-newer = "1 week"
+exclude-newer = "3 days"
 
 [tool.uv.sources]
 mxlmodels = { workspace = true }
