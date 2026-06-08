@@ -7,36 +7,6 @@ Pesticide Biochemistry and Physiology, 57(3), 200-210.
 
 from mxlpy import Model
 
-parameters = {
-    "k1": 1666,
-    "k2": 1250,
-    "k3": 500,
-    "k4": 20000,
-    "k5": 1666,
-    "k6": 3500,
-    "k7": 175,
-    "k8": 1750,
-    "k9": 35,
-    "k10": 5000,
-    "k11": 5000,
-    "k12": 150,
-    "k13": 100,
-    "k14": 150,
-    "k15": 100,
-    "k16": 150,
-    "k17": 100,
-    "k18": 150,
-    "k19": 100,
-    "k20": 150,
-    "k21": 100,
-    "k22": 150,
-    "k23": 100,
-    "k24": 1,
-    "k25": 1,
-    "k6n": 3500,
-    "p": 0.55,
-}
-
 
 def v1(
     k1: float,
@@ -211,7 +181,37 @@ def F(eprime: float, p: float, y15: float) -> float:
 def get_lazar1997():
     return (
         Model()
-        .add_parameters(parameters)
+        .add_parameters(
+            {
+                "k1": 1666,
+                "k2": 1250,
+                "k3": 500,
+                "k4": 20000,
+                "k5": 1666,
+                "k6": 3500,
+                "k7": 175,
+                "k8": 1750,
+                "k9": 35,
+                "k10": 5000,
+                "k11": 5000,
+                "k12": 150,
+                "k13": 100,
+                "k14": 150,
+                "k15": 100,
+                "k16": 150,
+                "k17": 100,
+                "k18": 150,
+                "k19": 100,
+                "k20": 150,
+                "k21": 100,
+                "k22": 150,
+                "k23": 100,
+                "k24": 1,
+                "k25": 1,
+                "k6n": 3500,
+                "p": 0.55,
+            }
+        )
         .add_variables(
             {
                 "y1": 0.66,
@@ -343,7 +343,9 @@ def get_lazar1997():
             stoichiometry={"y12": 1},
         )
         .add_reaction("v13", fn=v13, args=["k6n", "y13"], stoichiometry={"y13": 1})
-        .add_reaction("v14", fn=v14, args=["k6n", "y13"], stoichiometry={"y14": 1}) # Change in contrast to pub
+        .add_reaction(
+            "v14", fn=v14, args=["k6n", "y13"], stoichiometry={"y14": 1}
+        )  # Change in contrast to pub
         .add_reaction("v15", fn=v15, args=[], stoichiometry={"y15": 1})
         .add_derived(
             name="eprime", fn=eprime, args=["y2", "y4", "y6", "y8", "y12", "y14"]
