@@ -5,50 +5,11 @@ Annals of Botany, 1987, 60. Jg., Nr. 2, S. 157-169.
 DOI: https://doi.org/10.1093/oxfordjournals.aob.a087432
 """
 
-from mxlbricks.fns import moiety_1
 from mxlpy import Model
 
-parameters = {
-    "k1": 0.344,
-    "k2": 0.460e-1,
-    "k3": 0.261e-1,
-    "k4": 0.455e-1,
-    "k5": 0.455e-1,
-    "k6": 0.455,
-    "k7": 0.455,
-    "k8": 0.909,
-    "k9": 0.136e-1,
-    "k10": 0.400e-2,
-    "k11": 0.400e-4,
-    "k12": 0.341e-1,
-    "k13": 1.70,
-    "k14": 0.852e-3,
-    "k15": 0.852e-2,
-    "k16": 0.928e-1,
-    "k17": 0.227e-1,
-    "k18": 0.467e-1,
-    "k19": 0.114e-2,
-    "k20": 0.114e-1,
-    "k21": 0.114e-2,
-    "k22": 0.114e-2,
-    "k23": 0.114e-1,
-    "k24": 0.114e-1,
-    "kc1": 1,
-    "kc2": 0.933,
-    "rd": 1.1e-5,  # kc3 # derived from formula in pub
-    "ko1": 0.1e-1,
-    "ko2": 4.31,
-    "phic": 1.84,
-    "phio": 0.453e-1,
-    "phis": 0.100e-3,
-    "D": 0.100e-3,
-    "E": 0.500,
-    "Oa": 100,
-    "Ca": 0.450,
-    "PAg": 0.100e-2,
-    "PAr": 0.200e-3,
-    "h": 0.200e-3,
-}
+
+def moiety_1(concentration: float, total: float) -> float:
+    return total - concentration
 
 
 def v1(k1: float, CO2: float, RuBP: float) -> float:
@@ -186,7 +147,49 @@ def vphio(phio: float, Oa: float, Oi: float) -> float:
 def get_hahn1987():
     return (
         Model()
-        .add_parameters(parameters)
+        .add_parameters(
+            {
+                "k1": 0.344,
+                "k2": 0.460e-1,
+                "k3": 0.261e-1,
+                "k4": 0.455e-1,
+                "k5": 0.455e-1,
+                "k6": 0.455,
+                "k7": 0.455,
+                "k8": 0.909,
+                "k9": 0.136e-1,
+                "k10": 0.400e-2,
+                "k11": 0.400e-4,
+                "k12": 0.341e-1,
+                "k13": 1.70,
+                "k14": 0.852e-3,
+                "k15": 0.852e-2,
+                "k16": 0.928e-1,
+                "k17": 0.227e-1,
+                "k18": 0.467e-1,
+                "k19": 0.114e-2,
+                "k20": 0.114e-1,
+                "k21": 0.114e-2,
+                "k22": 0.114e-2,
+                "k23": 0.114e-1,
+                "k24": 0.114e-1,
+                "kc1": 1,
+                "kc2": 0.933,
+                "rd": 1.1e-5,  # kc3 # derived from formula in pub
+                "ko1": 0.1e-1,
+                "ko2": 4.31,
+                "phic": 1.84,
+                "phio": 0.453e-1,
+                "phis": 0.100e-3,
+                "D": 0.100e-3,
+                "E": 0.500,
+                "Oa": 100,
+                "Ca": 0.450,
+                "PAg": 0.100e-2,
+                "PAr": 0.200e-3,
+                "h": 0.200e-3,
+            }
+        )
         .add_variables(
             {
                 "RuBP": 1,
