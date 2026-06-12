@@ -10,6 +10,17 @@
 | organism    | C3 plant (Calvin cycle)                                                                                                  |
 
 Note: dynamics do not yet perfectly reproduce the published figures.
+
+The [Zhu 2009](https://doi.org/10.1016/j.nonrwa.2008.01.021) model is a deliberately
+simplified kinetic model of the Calvin-Benson-Bassham (CBB) cycle, the carbon-fixing
+dark reactions of photosynthesis. It tracks only five metabolites -
+ ribulose-1,5-bisphosphate (RuBP), 3-phosphoglycerate (PGA), 1,3-bisphosphoglycerate (DPGA),
+ glyceraldehyde-3-phosphate (GAP), and ribulose-5-phosphate (Ru5P) - and lumps the
+ many intermediate steps of the cycle into a handful of Michaelis-Menten reactions,
+ with ATP supplied as a fixed external parameter rather than a dynamic variable.
+ This reduction keeps the system small enough to be analysed mathematically while
+ still capturing the essential autocatalytic structure of carbon fixation,
+ where RuBP is both consumed by RuBisCO and regenerated downstream.
 """
 
 from mxlpy import Model
