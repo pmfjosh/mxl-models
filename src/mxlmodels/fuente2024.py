@@ -38,6 +38,7 @@ publication.
 """
 
 from collections.abc import Iterable
+from functools import partial
 
 import numpy as np
 from mxlpy import Derived, InitialAssignment, Model
@@ -213,38 +214,36 @@ def _v_leak(
 
 def _initial_equations(
     initial_guess: Iterable,
-    param_dict: dict,
+    pq_tot: float,
+    h_stroma: float,
+    atot: float,
+    n_psi: float,
+    stoic_psii: float,
+    npq_max: float,
+    b_h: float,
+    v_stroma: float,
+    v_lumen: float,
+    k1p: float,
+    k1m: float,
+    k2p: float,
+    k2m: float,
+    k3: float,
+    k_npq: float,
+    n_npq: float,
+    k4: float,
+    k5: float,
+    c_eq_p: float,
+    k6: float,
+    k7: float,
+    pfd: float,
+    k_x: float,
+    l_psi: float,
+    stoic_psi: float,
+    sigma_psi: float,
+    n_a: float,
 ) -> list[float]:
 
     q_active, pq_ox, psi_ox, h_lumen, atp = initial_guess
-
-    pq_tot = param_dict["PQ_tot"]
-    h_stroma = param_dict["h_stroma"]
-    atot = param_dict["Atot"]
-    n_psi = param_dict["nPSI"]
-    stoic_psii = param_dict["stoic_PSII"]
-    npq_max = param_dict["NPQ_max"]
-    b_h = param_dict["bH"]
-    v_stroma = param_dict["V_stroma"]
-    v_lumen = param_dict["V_lumen"]
-    k1p = param_dict["k1p"]
-    k1m = param_dict["k1m"]
-    k2p = param_dict["k2p"]
-    k2m = param_dict["k2m"]
-    k3 = param_dict["k3"]
-    k_npq = param_dict["K_NPQ"]
-    n_npq = param_dict["n_NPQ"]
-    k4 = param_dict["k4"]
-    k5 = param_dict["k5"]
-    c_eq_p = param_dict["cEqP"]
-    k6 = param_dict["k6"]
-    k7 = param_dict["k7"]
-    pfd = param_dict["pfd"]
-    k_x = param_dict["k_X"]
-    l_psi = param_dict["L_PSI"]
-    stoic_psi = param_dict["stoic_PSI"]
-    sigma_psi = param_dict["sigma_PSI"]
-    n_a = param_dict["N_A"]
 
     light = _osc_light(
         pfd=pfd,
@@ -335,53 +334,10 @@ def _initial_equations(
         alpha * v_PSII_O2 + alpha * v_PQH2_PSI - beta * v_ATPsynth - b_h * v_Leak
     )
     datp_dt = v_ATPsynth - v_ATPcons
-    # print(dqactive_dt)
-
     return [dqactive_dt, dpqox_dt, dpsiox_dt, dhlumen_dt, datp_dt]
 
 
-def _initial_combined(
-    extract_str: str,
-    param_dict: dict,
-) -> float:
-
-    bounds = [
-        (0, 1),  # Q_active
-        (0, param_dict["PQ_tot"]),  # PQ_ox
-        (0, param_dict["nPSI"]),  # PSI_ox
-        (param_dict["h_stroma"], param_dict["h_stroma"] * 100),  # h_lumen
-        (0, param_dict["Atot"]),  # ATP
-    ]
-
-    bounds_low = [b[0] for b in bounds]
-    bounds_high = [b[1] for b in bounds]
-
-    res = least_squares(
-        fun=_initial_equations,
-        x0=_initials(
-            pq_tot=param_dict["PQ_tot"],
-            h_stroma=param_dict["h_stroma"],
-            atot=param_dict["Atot"],
-            n_psi=param_dict["nPSI"],
-        ),
-        args=(param_dict,),
-        bounds=(bounds_low, bounds_high),
-        method="trf",
-        xtol=1e-8,
-    )
-
-    pointer = {
-        "qactive": 0,
-        "pqox": 1,
-        "psiox": 2,
-        "hlumen": 3,
-        "atp": 4,
-    }
-
-    return np.real(res.x[pointer[extract_str]])
-
-
-def _initials(
+def _x0_guess(
     pq_tot: float,
     h_stroma: float,
     atot: float,
@@ -396,7 +352,7 @@ def _initials(
     return qactive_stst, PQ_ox_stst, psi_ox_stst, h_lumen_stst, atp_stst
 
 
-def _initial_qactive(
+def _initial_combined(
     pq_tot: float,
     h_stroma: float,
     atot: float,
@@ -424,294 +380,72 @@ def _initial_qactive(
     stoic_psi: float,
     sigma_psi: float,
     n_a: float,
+    extract_str: str,
 ) -> float:
 
-    param_dict = {
-        "PQ_tot": pq_tot,
-        "h_stroma": h_stroma,
-        "Atot": atot,
-        "nPSI": n_psi,
-        "stoic_PSII": stoic_psii,
-        "NPQ_max": npq_max,
-        "bH": b_h,
-        "V_stroma": v_stroma,
-        "V_lumen": v_lumen,
-        "k1p": k1p,
-        "k1m": k1m,
-        "k2p": k2p,
-        "k2m": k2m,
-        "k3": k3,
-        "K_NPQ": k_npq,
-        "n_NPQ": n_npq,
-        "k4": k4,
-        "k5": k5,
-        "cEqP": c_eq_p,
-        "k6": k6,
-        "k7": k7,
-        "pfd": pfd,
-        "k_X": k_x,
-        "L_PSI": l_psi,
-        "stoic_PSI": stoic_psi,
-        "sigma_PSI": sigma_psi,
-        "N_A": n_a,
+    bounds = [
+        (0, 1),  # Q_active
+        (0, pq_tot),  # PQ_ox
+        (0, n_psi),  # PSI_ox
+        (h_stroma, h_stroma * 100),  # h_lumen
+        (0, atot),  # ATP
+    ]
+
+    bounds_low = [b[0] for b in bounds]
+    bounds_high = [b[1] for b in bounds]
+
+    res = least_squares(
+        fun=_initial_equations,
+        x0=_x0_guess(
+            pq_tot=pq_tot,
+            h_stroma=h_stroma,
+            atot=atot,
+            n_psi=n_psi,
+        ),
+        args=(
+            pq_tot,
+            h_stroma,
+            atot,
+            n_psi,
+            stoic_psii,
+            npq_max,
+            b_h,
+            v_stroma,
+            v_lumen,
+            k1p,
+            k1m,
+            k2p,
+            k2m,
+            k3,
+            k_npq,
+            n_npq,
+            k4,
+            k5,
+            c_eq_p,
+            k6,
+            k7,
+            pfd,
+            k_x,
+            l_psi,
+            stoic_psi,
+            sigma_psi,
+            n_a,
+        ),
+        bounds=(bounds_low, bounds_high),
+        method="trf",
+        xtol=1e-8,
+    )
+    pointer = {
+        "qactive": 0,
+        "pqox": 1,
+        "psiox": 2,
+        "hlumen": 3,
+        "atp": 4,
     }
-
-    return _initial_combined("qactive", param_dict)
-
-
-def _initial_pqox(
-    pq_tot: float,
-    h_stroma: float,
-    atot: float,
-    n_psi: float,
-    stoic_psii: float,
-    npq_max: float,
-    b_h: float,
-    v_stroma: float,
-    v_lumen: float,
-    k1p: float,
-    k1m: float,
-    k2p: float,
-    k2m: float,
-    k3: float,
-    k_npq: float,
-    n_npq: float,
-    k4: float,
-    k5: float,
-    c_eq_p: float,
-    k6: float,
-    k7: float,
-    pfd: float,
-    k_x: float,
-    l_psi: float,
-    stoic_psi: float,
-    sigma_psi: float,
-    n_a: float,
-) -> float:
-
-    param_dict = {
-        "PQ_tot": pq_tot,
-        "h_stroma": h_stroma,
-        "Atot": atot,
-        "nPSI": n_psi,
-        "stoic_PSII": stoic_psii,
-        "NPQ_max": npq_max,
-        "bH": b_h,
-        "V_stroma": v_stroma,
-        "V_lumen": v_lumen,
-        "k1p": k1p,
-        "k1m": k1m,
-        "k2p": k2p,
-        "k2m": k2m,
-        "k3": k3,
-        "K_NPQ": k_npq,
-        "n_NPQ": n_npq,
-        "k4": k4,
-        "k5": k5,
-        "cEqP": c_eq_p,
-        "k6": k6,
-        "k7": k7,
-        "pfd": pfd,
-        "k_X": k_x,
-        "L_PSI": l_psi,
-        "stoic_PSI": stoic_psi,
-        "sigma_PSI": sigma_psi,
-        "N_A": n_a,
-    }
-
-    return _initial_combined("pqox", param_dict)
+    return np.real(res.x[pointer[extract_str]])
 
 
-def _initial_psiox(
-    pq_tot: float,
-    h_stroma: float,
-    atot: float,
-    n_psi: float,
-    stoic_psii: float,
-    npq_max: float,
-    b_h: float,
-    v_stroma: float,
-    v_lumen: float,
-    k1p: float,
-    k1m: float,
-    k2p: float,
-    k2m: float,
-    k3: float,
-    k_npq: float,
-    n_npq: float,
-    k4: float,
-    k5: float,
-    c_eq_p: float,
-    k6: float,
-    k7: float,
-    pfd: float,
-    k_x: float,
-    l_psi: float,
-    stoic_psi: float,
-    sigma_psi: float,
-    n_a: float,
-) -> float:
-
-    param_dict = {
-        "PQ_tot": pq_tot,
-        "h_stroma": h_stroma,
-        "Atot": atot,
-        "nPSI": n_psi,
-        "stoic_PSII": stoic_psii,
-        "NPQ_max": npq_max,
-        "bH": b_h,
-        "V_stroma": v_stroma,
-        "V_lumen": v_lumen,
-        "k1p": k1p,
-        "k1m": k1m,
-        "k2p": k2p,
-        "k2m": k2m,
-        "k3": k3,
-        "K_NPQ": k_npq,
-        "n_NPQ": n_npq,
-        "k4": k4,
-        "k5": k5,
-        "cEqP": c_eq_p,
-        "k6": k6,
-        "k7": k7,
-        "pfd": pfd,
-        "k_X": k_x,
-        "L_PSI": l_psi,
-        "stoic_PSI": stoic_psi,
-        "sigma_PSI": sigma_psi,
-        "N_A": n_a,
-    }
-
-    return _initial_combined("psiox", param_dict)
-
-
-def _initial_hlumen(
-    pq_tot: float,
-    h_stroma: float,
-    atot: float,
-    n_psi: float,
-    stoic_psii: float,
-    npq_max: float,
-    b_h: float,
-    v_stroma: float,
-    v_lumen: float,
-    k1p: float,
-    k1m: float,
-    k2p: float,
-    k2m: float,
-    k3: float,
-    k_npq: float,
-    n_npq: float,
-    k4: float,
-    k5: float,
-    c_eq_p: float,
-    k6: float,
-    k7: float,
-    pfd: float,
-    k_x: float,
-    l_psi: float,
-    stoic_psi: float,
-    sigma_psi: float,
-    n_a: float,
-) -> float:
-
-    param_dict = {
-        "PQ_tot": pq_tot,
-        "h_stroma": h_stroma,
-        "Atot": atot,
-        "nPSI": n_psi,
-        "stoic_PSII": stoic_psii,
-        "NPQ_max": npq_max,
-        "bH": b_h,
-        "V_stroma": v_stroma,
-        "V_lumen": v_lumen,
-        "k1p": k1p,
-        "k1m": k1m,
-        "k2p": k2p,
-        "k2m": k2m,
-        "k3": k3,
-        "K_NPQ": k_npq,
-        "n_NPQ": n_npq,
-        "k4": k4,
-        "k5": k5,
-        "cEqP": c_eq_p,
-        "k6": k6,
-        "k7": k7,
-        "pfd": pfd,
-        "k_X": k_x,
-        "L_PSI": l_psi,
-        "stoic_PSI": stoic_psi,
-        "sigma_PSI": sigma_psi,
-        "N_A": n_a,
-    }
-
-    return _initial_combined("hlumen", param_dict)
-
-
-def _initial_atp(
-    pq_tot: float,
-    h_stroma: float,
-    atot: float,
-    n_psi: float,
-    stoic_psii: float,
-    npq_max: float,
-    b_h: float,
-    v_stroma: float,
-    v_lumen: float,
-    k1p: float,
-    k1m: float,
-    k2p: float,
-    k2m: float,
-    k3: float,
-    k_npq: float,
-    n_npq: float,
-    k4: float,
-    k5: float,
-    c_eq_p: float,
-    k6: float,
-    k7: float,
-    pfd: float,
-    k_x: float,
-    l_psi: float,
-    stoic_psi: float,
-    sigma_psi: float,
-    n_a: float,
-) -> float:
-
-    param_dict = {
-        "PQ_tot": pq_tot,
-        "h_stroma": h_stroma,
-        "Atot": atot,
-        "nPSI": n_psi,
-        "stoic_PSII": stoic_psii,
-        "NPQ_max": npq_max,
-        "bH": b_h,
-        "V_stroma": v_stroma,
-        "V_lumen": v_lumen,
-        "k1p": k1p,
-        "k1m": k1m,
-        "k2p": k2p,
-        "k2m": k2m,
-        "k3": k3,
-        "K_NPQ": k_npq,
-        "n_NPQ": n_npq,
-        "k4": k4,
-        "k5": k5,
-        "cEqP": c_eq_p,
-        "k6": k6,
-        "k7": k7,
-        "pfd": pfd,
-        "k_X": k_x,
-        "L_PSI": l_psi,
-        "stoic_PSI": stoic_psi,
-        "sigma_PSI": sigma_psi,
-        "N_A": n_a,
-    }
-
-    return _initial_combined("atp", param_dict)
-
-
-def get_fuente_2024() -> Model:
+def get_fuente_2024(*, at_reference: bool = False) -> Model:
     """Fuente 2024 model
 
     The Fuente2024 model is a kinetic model of photosynthesis designed
@@ -778,171 +512,70 @@ def get_fuente_2024() -> Model:
             "Q_total": 1,
         }
     )
-
-    m.add_variables(
-        {
-            "Q_active": InitialAssignment(
-                fn=_initial_qactive,
-                args=[
-                    "PQ_tot",
-                    "H_stroma",
-                    "AP_tot",
-                    "PSI_total",
-                    "stoic_PSII",
-                    "NPQ_max",
-                    "bH",
-                    "V_stroma",
-                    "V_lumen",
-                    "k1p",
-                    "k1m",
-                    "k2p",
-                    "k2m",
-                    "k3",
-                    "keq_NPQ",
-                    "n_NPQ",
-                    "k4",
-                    "k5",
-                    "cEqP",
-                    "k6",
-                    "k7",
-                    "PPFD",
-                    "k_X",
-                    "L_PSI",
-                    "stoic_PSI",
-                    "sigma_PSI_0",
-                    "N_A",
-                ],
-            ),
-            "PQ": InitialAssignment(
-                fn=_initial_pqox,
-                args=[
-                    "PQ_tot",
-                    "H_stroma",
-                    "AP_tot",
-                    "PSI_total",
-                    "stoic_PSII",
-                    "NPQ_max",
-                    "bH",
-                    "V_stroma",
-                    "V_lumen",
-                    "k1p",
-                    "k1m",
-                    "k2p",
-                    "k2m",
-                    "k3",
-                    "keq_NPQ",
-                    "n_NPQ",
-                    "k4",
-                    "k5",
-                    "cEqP",
-                    "k6",
-                    "k7",
-                    "PPFD",
-                    "k_X",
-                    "L_PSI",
-                    "stoic_PSI",
-                    "sigma_PSI_0",
-                    "N_A",
-                ],
-            ),
-            "PSI_ox": InitialAssignment(
-                fn=_initial_psiox,
-                args=[
-                    "PQ_tot",
-                    "H_stroma",
-                    "AP_tot",
-                    "PSI_total",
-                    "stoic_PSII",
-                    "NPQ_max",
-                    "bH",
-                    "V_stroma",
-                    "V_lumen",
-                    "k1p",
-                    "k1m",
-                    "k2p",
-                    "k2m",
-                    "k3",
-                    "keq_NPQ",
-                    "n_NPQ",
-                    "k4",
-                    "k5",
-                    "cEqP",
-                    "k6",
-                    "k7",
-                    "PPFD",
-                    "k_X",
-                    "L_PSI",
-                    "stoic_PSI",
-                    "sigma_PSI_0",
-                    "N_A",
-                ],
-            ),
-            "H_lumen": InitialAssignment(
-                fn=_initial_hlumen,
-                args=[
-                    "PQ_tot",
-                    "H_stroma",
-                    "AP_tot",
-                    "PSI_total",
-                    "stoic_PSII",
-                    "NPQ_max",
-                    "bH",
-                    "V_stroma",
-                    "V_lumen",
-                    "k1p",
-                    "k1m",
-                    "k2p",
-                    "k2m",
-                    "k3",
-                    "keq_NPQ",
-                    "n_NPQ",
-                    "k4",
-                    "k5",
-                    "cEqP",
-                    "k6",
-                    "k7",
-                    "PPFD",
-                    "k_X",
-                    "L_PSI",
-                    "stoic_PSI",
-                    "sigma_PSI_0",
-                    "N_A",
-                ],
-            ),
-            "ATP_st": InitialAssignment(
-                fn=_initial_atp,
-                args=[
-                    "PQ_tot",
-                    "H_stroma",
-                    "AP_tot",
-                    "PSI_total",
-                    "stoic_PSII",
-                    "NPQ_max",
-                    "bH",
-                    "V_stroma",
-                    "V_lumen",
-                    "k1p",
-                    "k1m",
-                    "k2p",
-                    "k2m",
-                    "k3",
-                    "keq_NPQ",
-                    "n_NPQ",
-                    "k4",
-                    "k5",
-                    "cEqP",
-                    "k6",
-                    "k7",
-                    "PPFD",
-                    "k_X",
-                    "L_PSI",
-                    "stoic_PSI",
-                    "sigma_PSI_0",
-                    "N_A",
-                ],
-            ),
-        }
-    )
+    if at_reference:
+        m.add_variables(
+            {
+                "Q_active": np.float64(1.6044277821745498e-23),
+                "PQ": np.float64(3.537090541057567),
+                "PSI_ox": np.float64(0.197310072778891),
+                "H_lumen": np.float64(0.4120700665522831),
+                "ATP_st": np.float64(144.95412072145785),
+            }
+        )
+    else:
+        args = [
+            "PQ_tot",
+            "H_stroma",
+            "AP_tot",
+            "PSI_total",
+            "stoic_PSII",
+            "NPQ_max",
+            "bH",
+            "V_stroma",
+            "V_lumen",
+            "k1p",
+            "k1m",
+            "k2p",
+            "k2m",
+            "k3",
+            "keq_NPQ",
+            "n_NPQ",
+            "k4",
+            "k5",
+            "cEqP",
+            "k6",
+            "k7",
+            "PPFD",
+            "k_X",
+            "L_PSI",
+            "stoic_PSI",
+            "sigma_PSI_0",
+            "N_A",
+        ]
+        m.add_variables(
+            {
+                "Q_active": InitialAssignment(
+                    fn=partial(_initial_combined, extract_str="qactive"),
+                    args=args,
+                ),
+                "PQ": InitialAssignment(
+                    fn=partial(_initial_combined, extract_str="pqox"),
+                    args=args,
+                ),
+                "PSI_ox": InitialAssignment(
+                    fn=partial(_initial_combined, extract_str="psiox"),
+                    args=args,
+                ),
+                "H_lumen": InitialAssignment(
+                    fn=partial(_initial_combined, extract_str="hlumen"),
+                    args=args,
+                ),
+                "ATP_st": InitialAssignment(
+                    fn=partial(_initial_combined, extract_str="atp"),
+                    args=args,
+                ),
+            }
+        )
 
     m.add_derived(
         name="Q_inactive",
